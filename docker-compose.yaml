@@ -1,0 +1,16 @@
+seismic:
+  image: oydeu/srv-seismic
+  env_file: .env
+  environment:
+    RAILS_ENV: production
+  links:
+    - signature
+  ports:
+    - "4600:3000"
+signature:
+  image: oydeu/srv-signature
+  env_file: .env_signature
+  environment:
+    RAILS_ENV: production
+  volumes:
+    - $PWD/tmp:/key
