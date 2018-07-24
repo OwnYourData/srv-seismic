@@ -8,8 +8,8 @@ module Api
 
             # curl localhost:4600/api/index?query=%7B%22lat%22%3A1.23%2C%22long%22%3A2.34%2C%22radius%22%3A100%2C%22duration%22%3A14%7D
             def seismic
-                query = params[:query]
-                query_parsed = JSON.parse(query)
+                query = params[:query].to_s
+                query_parsed = JSON.parse(query) rescue Hash.new()
                 lat = query_parsed["lat"].to_f
                 long = query_parsed["long"].to_f
                 radius = query_parsed["radius"].to_f
@@ -35,9 +35,6 @@ module Api
                         time = item["properties"]["time"]
                         id = item["id"].to_i
                         distance = home.distance_to(point)
-                        puts "Distance: " + distance.to_s + " <= " + radius.to_s
-                        puts "Date: " + Date.parse(time).to_s + " >= " + (Date.today-duration.days).to_s
-                        puts "ID: " + id.to_s + " > " + last.to_s
                         if ((distance <= radius) &&
                             (Date.parse(time) >= Date.today-duration.days) &&
                             (id > last))
@@ -69,7 +66,7 @@ module Api
                     response = HTTParty.post("https://blockchain.ownyourdata.eu/api/doc?hash=" + source_hash)
                     if response.code.to_s == "200"
                     	if response.parsed_response["address"] == ""
-                    		retVal["source"]["hash-verification"] = "https://blockchain.ownyourdata.eu/api/doc?hash=" + source_hash
+                    		retVal["source"]["hash-verification"] = "https://seal.ownyourdata.eu/en?hash=" + source_hash
                     	else
                     		retVal["source"]["hash-verification"] = response.parsed_response["address"]
                     	end
