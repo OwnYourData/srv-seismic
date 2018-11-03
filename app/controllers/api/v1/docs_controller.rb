@@ -49,10 +49,24 @@ module Api
                     retVal["source"]["data-hash"] = data_hash
 
                     sig_url = ENV["SIGNATURE_SERVICE"].to_s + "/api/sign"
-                    response = HTTParty.post(
-                        sig_url, 
-                        headers: { 'Content-Type' => 'application/json' },
-                        body: {data: Base64.strict_encode64(data_string)}.to_json)
+                    begin
+                        response = HTTParty.post(
+                            sig_url, 
+                            headers: { 'Content-Type' => 'application/json' },
+                            body: {data: Base64.strict_encode64(data_string)}.to_json)
+                        response_code = response.code
+                    rescue
+                        begin
+                            sig_fallback_url = ENV["SIGNATURE_SERVICE_FALLBACK"].to_s + "/api/sign"
+                            response = HTTParty.post(
+                                sig_fallback_url, 
+                                headers: { 'Content-Type' => 'application/json' },
+                                body: {data: Base64.strict_encode64(data_string)}.to_json)
+                            response_code = response.code
+                        rescue
+                            response_code = "500"
+                        end
+                    end
                     source_hash = ""
                     if response.code.to_s == "200"
                         retVal["source"]["email"] = response.parsed_response["email"]
